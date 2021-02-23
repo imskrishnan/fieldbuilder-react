@@ -1,18 +1,18 @@
-import React, { Component } from "react";
-import axios from "axios";
+import React, { Component } from 'react';
+import axios from 'axios';
 
 // Default state that page should be in upon loading
 const INIT_STATE = {
-  labelValue: "",
-  defaultValue: "",
-  choicesValue: "",
-  typeValue: "multi-select",
+  labelValue: '',
+  defaultValue: '',
+  choicesValue: '',
+  typeValue: 'multi-select',
   checkBoxValue: false,
   errors: {
-    labelValue: "",
-    choicesValue: ""
+    labelValue: '',
+    choicesValue: '',
   },
-  orderValue: "Order Alphabetically"
+  orderValue: '',
 };
 
 const validateForm = (errors) => {
@@ -23,7 +23,7 @@ const validateForm = (errors) => {
 
 class FieldBuilder extends Component {
   state = {
-    ...INIT_STATE
+    ...INIT_STATE,
   };
 
   /**
@@ -50,6 +50,11 @@ class FieldBuilder extends Component {
     this.setState({ checkBoxValue: !this.state.checkBoxValue });
   };
 
+  handleOrderValue = (event) => {
+    const { value } = event.target;
+    this.setState({ orderValue: value });
+  };
+
   /**
    * Handles changes to Label field and checks whether it is filled or not,
    * Checks duplicates in the choices field and
@@ -59,37 +64,37 @@ class FieldBuilder extends Component {
     event.preventDefault();
     const { name, value } = event.target;
     let errors = this.state.errors;
-    if (name === "labelValue") {
-      errors.labelValue = value.length < 1 ? "Label field is required" : "";
+    if (name === 'labelValue') {
+      errors.labelValue = value.length < 1 ? 'Label field is required' : '';
       this.setState({ errors, [name]: value });
-    } else if (name === "choicesValue") {
+    } else if (name === 'choicesValue') {
       if (value.split(/\r?\n/).length < 51) {
         let lastChar = value[value.length - 1];
-        if (lastChar === "\n" || lastChar === "\r") {
+        if (lastChar === '\n' || lastChar === '\r') {
           let duplicateCheck = this.checkDuplicates(value.split(/\r?\n/));
           if (duplicateCheck) {
-            errors.choicesValue = "Duplicate choices are not allowed!";
+            errors.choicesValue = 'Duplicate choices are not allowed!';
             this.setState((prevState) => {
               console.log(prevState);
               return {
                 choicesValue: prevState.choicesValue,
-                errors
+                errors,
               };
             });
           } else {
-            errors.choicesValue = "";
+            errors.choicesValue = '';
             this.setState({ errors, [name]: value });
           }
         } else {
-          errors.choicesValue = "";
+          errors.choicesValue = '';
           this.setState({ errors, [name]: value });
         }
       } else {
-        errors.choicesValue = "Maximum choices allowed is 50";
+        errors.choicesValue = 'Maximum choices allowed is 50';
         this.setState((prevState) => {
           return {
             choicesValue: prevState.choicesValue,
-            errors
+            errors,
           };
         });
       }
@@ -113,17 +118,17 @@ class FieldBuilder extends Component {
     }
     if (distinctChoices.length > 49) {
       errors.choicesValue =
-        "Cannot insert the default value in choices as the maximum allowed choices is 50. Please include default value as one of the choices!";
+        'Cannot insert the default value in choices as the maximum allowed choices is 50. Please include default value as one of the choices!';
       this.setState((prevState) => {
         return {
           choicesValue: prevState.choicesValue,
-          errors
+          errors,
         };
       });
     } else {
       this.setState((prevState) => {
         return {
-          choicesValue: prevState.choicesValue.concat("\n", defaultValue)
+          choicesValue: prevState.choicesValue.concat('\n', defaultValue),
         };
       });
     }
@@ -135,11 +140,11 @@ class FieldBuilder extends Component {
   checkLabelValue() {
     let errors = this.state.errors;
     errors.labelValue =
-      this.state.labelValue.length < 1 ? "Label field is required" : "";
+      this.state.labelValue.length < 1 ? 'Label field is required' : '';
     this.setState((prevState) => {
       return {
         labelValue: prevState.labelValue,
-        errors
+        errors,
       };
     });
   }
@@ -152,7 +157,7 @@ class FieldBuilder extends Component {
     this.checkLabelValue();
     this.checkDefaultValueInChoices();
     if (validateForm(this.state.errors)) {
-      console.info("Valid Form");
+      console.info('Valid Form');
       event.preventDefault();
       const url = `https://www.mocky.io/v2/566061f21200008e3aabd919`;
 
@@ -162,7 +167,7 @@ class FieldBuilder extends Component {
         checkBoxFieldSubmitted: this.state.checkBoxValue,
         defaultValueSubmitted: this.state.defaultValue,
         choicesValueSubmitted: this.state.choicesValue.split(/\r?\n/),
-        orderValueSubmitted: this.state.orderValue
+        orderValueSubmitted: this.state.orderValue,
       };
 
       axios
@@ -170,25 +175,25 @@ class FieldBuilder extends Component {
         .then((res) => {
           console.log(res);
           console.log(JSON.parse(res.config.data));
-          alert("Form submitted successfully!");
+          alert('Form submitted successfully!');
         })
         .catch(function (error) {
           console.log(error);
         });
     } else {
-      alert("Please correct the errors before submitting the form!");
-      console.error("Invalid Form");
+      alert('Please correct the errors before submitting the form!');
+      console.error('Invalid Form');
     }
   };
 
   handleClearButton = (event) => {
-    this.state.labelValue("");
-    this.state.defaultValue("");
-    this.state.choicesValue("");
-    this.state.typeValue("");
+    this.state.labelValue('');
+    this.state.defaultValue('');
+    this.state.choicesValue('');
+    this.state.typeValue('');
     this.state.checkBoxValue(false);
-    this.state.errors.labelValue("");
-    this.state.errors.choicesValue("");
+    this.state.errors.labelValue('');
+    this.state.errors.choicesValue('');
   };
 
   /**
@@ -201,11 +206,11 @@ class FieldBuilder extends Component {
         <div className="App">
           <div
             className="card text-dark bg-light mb-3 card border-info"
-            style={{ maxWidth: "33rem" }}
+            style={{ maxWidth: '33rem' }}
           >
             <div
               className="card-header custom-font"
-              style={{ backgroundColor: "#daf5f2" }}
+              style={{ backgroundColor: '#daf5f2' }}
             >
               Field Builder
             </div>
@@ -215,7 +220,7 @@ class FieldBuilder extends Component {
               {/* Label field */}
               <div className="mb-3 row">
                 <label className="col-sm-3 col-form-label">
-                  Label <span style={{ color: "red" }}>*</span>
+                  Label <span style={{ color: 'red' }}>*</span>
                 </label>
                 <div className="col-sm-6">
                   <input
@@ -227,7 +232,7 @@ class FieldBuilder extends Component {
                     className="form-control"
                   />
                   {errors.labelValue.length > 0 && (
-                    <span className="error" style={{ color: "red" }}>
+                    <span className="error" style={{ color: 'red' }}>
                       {errors.labelValue}
                     </span>
                   )}
@@ -302,7 +307,7 @@ class FieldBuilder extends Component {
                     className="form-control"
                   ></textarea>
                   {errors.choicesValue.length > 0 && (
-                    <span className="error" style={{ color: "red" }}>
+                    <span className="error" style={{ color: 'red' }}>
                       {errors.choicesValue}
                     </span>
                   )}
@@ -317,9 +322,13 @@ class FieldBuilder extends Component {
                   <select
                     className="form-select"
                     aria-label="Default select example"
+                    value={this.orderValue}
+                    onChange={this.handleOrderValue}
                   >
                     <option defaultValue>Choose...</option>
-                    <option value="1">Order Alphabetically</option>
+                    <option value="order-alphabetically">
+                      Order Alphabetically
+                    </option>
                   </select>
                 </div>
               </div>
@@ -336,12 +345,12 @@ class FieldBuilder extends Component {
                     name="orderValue"
                   >
                     Save Changes
-                  </button>{" "}
-                  or{" "}
+                  </button>{' '}
+                  or{' '}
                   <a
                     href="google.com"
                     className="link-danger"
-                    style={{ textDecoration: "none" }}
+                    style={{ textDecoration: 'none' }}
                   >
                     Cancel
                   </a>
@@ -358,7 +367,7 @@ class FieldBuilder extends Component {
                     className="btn btn-dark"
                   >
                     Clear
-                  </button>{" "}
+                  </button>{' '}
                 </div>
               </div>
               {/* Ending clear button screen */}
