@@ -22,37 +22,72 @@ const validateForm = (errors) => {
 };
 
 class FieldBuilder extends Component {
-  state = {
-    ...INIT_STATE,
-  };
+  constructor(props) {
+    super(props);
+
+    if (localStorage.getItem('formData')) {
+      this.state = JSON.parse(localStorage.getItem('formData')); //in this case the state is just for input values
+    } else {
+      this.state = {
+        ...INIT_STATE,
+      };
+    }
+
+    this.handleChange = this.handleChange.bind(this);
+    // this.handleInput2Change = this.handleInput2Change.bind(this);
+  }
+
+  // state = {
+  //   ...INIT_STATE,
+  // };
 
   /**
    * Check for duplicate values in the choices field
    */
+  //check for whitespaces, special cases at the end of the string and ignore cases
   checkDuplicates(array) {
+    console.log('Sorted Array reads :: ' + array.sort());
     var valuesSoFar = Object.create(null);
     for (var i = 0; i < array.length; ++i) {
-      var value = array[i];
-      if (value in valuesSoFar) {
+      // console.log('ValuesSoFar : ' + JSON.stringify(valuesSoFar));
+      var valueToCheck = array[i].replace(/\s+/g, '');
+      if (valueToCheck.toLowerCase() in valuesSoFar) {
         return true;
       }
-      valuesSoFar[value] = true;
+      valuesSoFar[valueToCheck.toLowerCase()] = true;
     }
     return false;
   }
 
+  // handles changes to the typeValue state
   handleTypeChange = (event) => {
     const { value } = event.target;
-    this.setState({ typeValue: value });
+    this.setState({ typeValue: value }, () => {
+      localStorage.setItem('formData', JSON.stringify(this.state));
+    });
   };
 
+  // handles changes to the checkBox
   handleCheckBoxClick = () => {
-    this.setState({ checkBoxValue: !this.state.checkBoxValue });
+    this.setState({ checkBoxValue: !this.state.checkBoxValue }, () => {
+      localStorage.setItem('formData', JSON.stringify(this.state));
+    });
   };
 
+  // handles changes to the order field
   handleOrderValue = (event) => {
     const { value } = event.target;
     this.setState({ orderValue: value });
+    if (value === 'order-alphabetically') {
+      this.setState(
+        {
+          choicesValue: this.state.choicesValue.split('\n').sort().join('\n'),
+        },
+        () => {
+          localStorage.setItem('formData', JSON.stringify(this.state));
+        }
+      );
+    }
   };
 
   /**
@@ -66,7 +101,9 @@ class FieldBuilder extends Component {
     let errors = this.state.errors;
     if (name === 'labelValue') {
       errors.labelValue = value.length < 1 ? 'Label field is required' : '';
-      this.setState({ errors, [name]: value });
+      this.setState({ errors, [name]: value }, () => {
+        localStorage.setItem('formData', JSON.stringify(this.state));
+      });
     } else if (name === 'choicesValue') {
       if (value.split(/\r?\n/).length < 51) {
         let lastChar = value[value.length - 1];
@@ -74,32 +111,48 @@ class FieldBuilder extends Component {
           let duplicateCheck = this.checkDuplicates(value.split(/\r?\n/));
           if (duplicateCheck) {
             errors.choicesValue = 'Duplicate choices are not allowed!';
-            this.setState((prevState) => {
-              console.log(prevState);
-              return {
-                choicesValue: prevState.choicesValue,
-                errors,
-              };
-            });
+            this.setState(
+              (prevState) => {
+                // console.log(prevState);
+                return {
+                  choicesValue: prevState.choicesValue,
+                  errors,
+                };
+              },
+              () => {
+                localStorage.setItem('formData', JSON.stringify(this.state));
+              }
+            );
           } else {
             errors.choicesValue = '';
-            this.setState({ errors, [name]: value });
+            this.setState({ errors, [name]: value }, () => {
+              localStorage.setItem('formData', JSON.stringify(this.state));
+            });
           }
         } else {
           errors.choicesValue = '';
-          this.setState({ errors, [name]: value });
+          this.setState({ errors, [name]: value }, () => {
+            localStorage.setItem('formData', JSON.stringify(this.state));
+          });
         }
       } else {
         errors.choicesValue = 'Maximum choices allowed is 50';
-        this.setState((prevState) => {
-          return {
-            choicesValue: prevState.choicesValue,
-            errors,
-          };
-        });
+        this.setState(
+          (prevState) => {
+            return {
+              choicesValue: prevState.choicesValue,
+              errors,
+            };
+          },
+          () => {
+            localStorage.setItem('formData', JSON.stringify(this.state));
+          }
+        );
       }
     } else {
-      this.setState({ errors, [name]: value });
+      this.setState({ errors, [name]: value }, () => {
+        localStorage.setItem('formData', JSON.stringify(this.state));
+      });
     }
   };
 
@@ -135,7 +188,7 @@ class FieldBuilder extends Component {
   }
 
   /**
-   * Checks if the lable field is empty or not while submitting the form
+   * Checks if the label field is empty or not while submitting the form
    */
   checkLabelValue() {
     let errors = this.state.errors;
@@ -156,11 +209,12 @@ class FieldBuilder extends Component {
     event.preventDefault();
     this.checkLabelValue();
     this.checkDefaultValueInChoices();
+    // console.log(this.state.choicesValue);
     if (validateForm(this.state.errors)) {
       console.info('Valid Form');
       event.preventDefault();
       const url = `https://www.mocky.io/v2/566061f21200008e3aabd919`;
-
+      console.log('Choices value :: ' + this.state.choicesValue);
       const data = {
         labelFieldSubmitted: this.state.labelValue,
         typeFieldSubmitted: this.state.typeValue,
@@ -173,7 +227,7 @@ class FieldBuilder extends Component {
       axios
         .post(url, { data })
         .then((res) => {
-          console.log(res);
+          // console.log(res);
           console.log(JSON.parse(res.config.data));
           alert('Form submitted successfully!');
         })
@@ -186,6 +240,7 @@ class FieldBuilder extends Component {
     }
   };
 
+  // handles clear button
   handleClearButton = (event) => {
     this.state.labelValue('');
     this.state.defaultValue('');
@@ -363,7 +418,8 @@ class FieldBuilder extends Component {
                 <label className="col-sm-3 col-form-label"></label>
                 <div className="col-sm-6">
                   <button
-                    onClick={this.handleClearButton}
+                    // onClick={this.handleClearButton}
+                    onClick={window.localStorage.clear()}
                     className="btn btn-dark"
                   >
                     Clear
